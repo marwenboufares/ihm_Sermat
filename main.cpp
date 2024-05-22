@@ -10,11 +10,21 @@
 #include <QSerialPort>
 #include <QFile>
 #include <QTextStream>
+#include <QScreen> // Pour accéder aux informations sur l'écran
+#include <QHBoxLayout> // Pour utiliser QHBoxLayout
+#include <QLabel> // Pour utiliser QLabel
 
 class UARTConfigForm : public QWidget {
 public:
     UARTConfigForm(QWidget *parent = nullptr) : QWidget(parent) {
         setWindowTitle("Configuration UART");
+
+        // Définir la taille de l'application
+        resize(800, 400); // Remplacez ces valeurs par les dimensions souhaitées
+
+        // Positionner l'application au centre de l'écran
+        QRect screenGeometry = QGuiApplication::screens().first()->geometry();
+        move((screenGeometry.width() - width()) / 2, (screenGeometry.height() - height()) / 2);
 
         // Création des champs de saisie
         portComboBox = new QComboBox(this);
@@ -38,20 +48,29 @@ public:
 
         // Bouton de validation
         submitButton = new QPushButton("Valider", this);
+        submitButton->setFixedWidth(150);
         connect(submitButton, &QPushButton::clicked, this, &UARTConfigForm::submitForm);
 
-        // Création du layout
-        QFormLayout *formLayout = new QFormLayout;
-        formLayout->addRow("Port COM :", portComboBox);
-        formLayout->addRow("Vitesse standard :", baudRateComboBox);
-        formLayout->addRow("Vitesse personnalisée :", customBaudRateLineEdit);
-        formLayout->addRow("Type de signal :", signalTypeComboBox);
-        formLayout->addRow("Parité :", parityComboBox);
-        formLayout->addRow("Bits de données :", dataBitsComboBox);
-        formLayout->addRow("Bits de stop :", stopBitsComboBox);
-        formLayout->addRow(submitButton);
+        // TopLayout pour les champs de saisie, etc.
+        QFormLayout *topLayout = new QFormLayout;
+        topLayout->addRow("Port COM :", portComboBox);
+        topLayout->addRow("Vitesse standard :", baudRateComboBox);
+        topLayout->addRow("Vitesse personnalisée :", customBaudRateLineEdit);
+        topLayout->addRow("Type de signal :", signalTypeComboBox);
+        topLayout->addRow("Parité :", parityComboBox);
+        topLayout->addRow("Bits de données :", dataBitsComboBox);
+        topLayout->addRow("Bits de stop :", stopBitsComboBox);
 
-        setLayout(formLayout);
+        // BasLayout horizontal pour le bas de la fenêtre
+        QHBoxLayout *bottomLayout = new QHBoxLayout;
+        bottomLayout->addStretch(); // Ajout d'espacement à gauche
+        bottomLayout->addWidget(submitButton); // Ajout du bouton "Valider" à droite
+
+        // Layout principal de la fenêtre
+        QVBoxLayout *mainLayout = new QVBoxLayout;
+        mainLayout->addLayout(topLayout); // Ajout du layout des champs de saisie
+        mainLayout->addLayout(bottomLayout); // Ajout du layout pour le bouton "Valider"
+        setLayout(mainLayout); // Définition du layout principal
     }
 
 private slots:
@@ -76,6 +95,14 @@ private slots:
     }
 
 private:
+    QHBoxLayout *createFormItem(const QString &labelText, QWidget *widget) {
+        QLabel *label = new QLabel(labelText);
+        QHBoxLayout *layout = new QHBoxLayout;
+        layout->addWidget(label);
+        layout->addWidget(widget);
+        return layout;
+    }
+
     QComboBox *portComboBox;
     QComboBox *baudRateComboBox;
     QLineEdit *customBaudRateLineEdit;
