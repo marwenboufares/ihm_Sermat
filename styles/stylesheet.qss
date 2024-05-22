@@ -1,0 +1,72 @@
+/* General Widget Styling */
+QWidget {
+    background-color: #2E2E2E;
+    color: #E0E0E0;
+    font-family: Arial, sans-serif;
+}
+
+/* QLineEdit Styling */
+QLineEdit {
+    background-color: #3C3C3C;
+    border: 1px solid #4A4A4A;
+    padding: 5px;
+    border-radius: 5px;
+    color: #E0E0E0;
+}
+
+/* QComboBox Styling */
+QComboBox {
+    background-color: #3C3C3C;
+    border: 1px solid #4A4A4A;
+    padding: 5px;
+    border-radius: 5px;
+    color: #E0E0E0;
+}
+
+QComboBox QAbstractItemView {
+    background-color: #3C3C3C;
+    border: 1px solid #4A4A4A;
+    selection-background-color: #555555;
+    color: #E0E0E0;
+}
+
+/* QSpinBox Styling */
+QSpinBox {
+    background-color: #3C3C3C;
+    border: 1px solid #4A4A4A;
+    padding: 5px;
+    border-radius: 5px;
+    color: #E0E0E0;
+}
+
+QSpinBox::up-button, QSpinBox::down-button {
+    background-color: transparent;
+    border: none;
+    subcontrol-origin: border;
+    subcontrol-position: center right;
+    width: 16px;
+    height: 16px;
+}
+
+QSpinBox::up-arrow, QSpinBox::down-arrow {
+    image: url(:/images/arrow.png);
+    width: 16px;
+    height: 16px;
+}
+
+/* QPushButton Styling */
+QPushButton {
+    background-color: #555555;
+    border: 1px solid #4A4A4A;
+    padding: 5px 10px;
+    border-radius: 5px;
+    color: #E0E0E0;
+}
+
+QPushButton:hover {
+    background-color: #666666;
+}
+
+QPushButton:pressed {
+    background-color: #777777;
+}
