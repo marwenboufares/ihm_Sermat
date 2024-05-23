@@ -2,7 +2,8 @@
 QWidget {
     background-color: #2E2E2E;
     color: #E0E0E0;
-    font-family: Arial, sans-serif;
+    font-family: "Segoe UI", Arial, sans-serif;
+    font-size: 12px;
 }
 
 /* QLineEdit Styling */
@@ -12,6 +13,11 @@ QLineEdit {
     padding: 5px;
     border-radius: 5px;
     color: #E0E0E0;
+    transition: border-color 0.2s;
+}
+
+QLineEdit:focus {
+    border-color: #3ec5cf;
 }
 
 /* QComboBox Styling */
@@ -21,6 +27,11 @@ QComboBox {
     padding: 5px;
     border-radius: 5px;
     color: #E0E0E0;
+    transition: border-color 0.2s;
+}
+
+QComboBox:focus {
+    border-color: #3ec5cf;
 }
 
 QComboBox QAbstractItemView {
@@ -30,6 +41,21 @@ QComboBox QAbstractItemView {
     color: #E0E0E0;
 }
 
+QComboBox::drop-down {
+    border: none;
+    background: transparent;
+}
+
+QComboBox::down-arrow {
+    image: url(:/img/down-arrow.png);
+    width: 16px;
+    height: 16px;
+}
+
+QComboBox::down-arrow:disabled {
+    image: url(:/img/down-arrow-disabled.png);
+}
+
 /* QSpinBox Styling */
 QSpinBox {
     background-color: #3C3C3C;
@@ -37,6 +63,11 @@ QSpinBox {
     padding: 5px;
     border-radius: 5px;
     color: #E0E0E0;
+    transition: border-color 0.2s;
+}
+
+QSpinBox:focus {
+    border-color: #3ec5cf;
 }
 
 QSpinBox::up-button, QSpinBox::down-button {
@@ -49,7 +80,7 @@ QSpinBox::up-button, QSpinBox::down-button {
 }
 
 QSpinBox::up-arrow, QSpinBox::down-arrow {
-    image: url(:/images/arrow.png);
+    image: url(:/img/arrow.png);
     width: 16px;
     height: 16px;
 }
@@ -61,12 +92,46 @@ QPushButton {
     padding: 5px 10px;
     border-radius: 5px;
     color: #E0E0E0;
+    transition: background-color 0.2s, border-color 0.2s;
 }
 
 QPushButton:hover {
     background-color: #666666;
+    border-color: #3ec5cf;
 }
 
 QPushButton:pressed {
     background-color: #3ec5cf;
+}
+
+/* QCheckBox Styling */
+QCheckBox {
+    color: #E0E0E0;
+    padding: 5px;
+}
+
+QCheckBox::indicator {
+    width: 16px;
+    height: 16px;
+}
+
+QCheckBox::indicator:unchecked {
+    image: url(:/img/checkbox-unchecked.png);
+}
+
+QCheckBox::indicator:checked {
+    image: url(:/img/checkbox-checked.png);
+}
+
+QCheckBox::indicator:unchecked:hover {
+    image: url(:/img/checkbox-unchecked.png);
+}
+
+QCheckBox::indicator:checked:hover {
+    image: url(:/img/checkbox-checked.png);
+}
+
+/* QLabel Styling */
+QLabel {
+    color: #3EC5CF;
 }

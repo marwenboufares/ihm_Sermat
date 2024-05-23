@@ -11,23 +11,19 @@
 #include <QSerialPort>
 #include <QFile>
 #include <QTextStream>
-#include <QScreen> // Pour accéder aux informations sur l'écran
-#include <QHBoxLayout> // Pour utiliser QHBoxLayout
-#include <QLabel> // Pour utiliser QLabel
+#include <QScreen>
+#include <QHBoxLayout>
+#include <QLabel>
 
 class UARTConfigForm : public QWidget {
 public:
     UARTConfigForm(QWidget *parent = nullptr) : QWidget(parent) {
         setWindowTitle("Configuration UART");
 
-        // Définir la taille de l'application
-        resize(800, 400); // Remplacez ces valeurs par les dimensions souhaitées
-
-        // Positionner l'application au centre de l'écran
+        resize(800, 400);
         QRect screenGeometry = QGuiApplication::screens().first()->geometry();
         move((screenGeometry.width() - width()) / 2, (screenGeometry.height() - height()) / 2);
 
-        // Création des champs de saisie
         portComboBox = new QComboBox(this);
         detectCOMPorts();
 
@@ -37,7 +33,7 @@ public:
         customBaudRateLineEdit = new QLineEdit(this);
 
         customBaudRateCheckBox = new QCheckBox(this);
-        customBaudRateLineEdit->setEnabled(false); // Désactiver l'éditeur de ligne au début
+        customBaudRateLineEdit->setEnabled(false);
         connect(customBaudRateCheckBox, &QCheckBox::stateChanged, this, &UARTConfigForm::toggleCustomBaudRate);
 
         signalTypeComboBox = new QComboBox(this);
@@ -52,17 +48,14 @@ public:
         stopBitsComboBox = new QComboBox(this);
         stopBitsComboBox->addItems({"1", "1.5", "2"});
 
-        // Bouton de validation
         submitButton = new QPushButton("Valider", this);
         submitButton->setFixedWidth(150);
         connect(submitButton, &QPushButton::clicked, this, &UARTConfigForm::submitForm);
 
-        // TopLayout pour les champs de saisie, etc.
         QFormLayout *topLayout = new QFormLayout;
         topLayout->addRow("Port COM :", portComboBox);
         topLayout->addRow("Vitesse standard :", baudRateComboBox);
 
-        // Créer un layout horizontal pour la checkbox et l'éditeur de ligne
         QHBoxLayout *customBaudRateLayout = new QHBoxLayout;
         customBaudRateLayout->addWidget(customBaudRateCheckBox);
         customBaudRateLayout->addWidget(customBaudRateLineEdit);
@@ -73,16 +66,14 @@ public:
         topLayout->addRow("Bits de données :", dataBitsComboBox);
         topLayout->addRow("Bits de stop :", stopBitsComboBox);
 
-        // BasLayout horizontal pour le bas de la fenêtre
         QHBoxLayout *bottomLayout = new QHBoxLayout;
-        bottomLayout->addStretch(); // Ajout d'espacement à gauche
-        bottomLayout->addWidget(submitButton); // Ajout du bouton "Valider" à droite
+        bottomLayout->addStretch();
+        bottomLayout->addWidget(submitButton);
 
-        // Layout principal de la fenêtre
         QVBoxLayout *mainLayout = new QVBoxLayout;
-        mainLayout->addLayout(topLayout); // Ajout du layout des champs de saisie
-        mainLayout->addLayout(bottomLayout); // Ajout du layout pour le bouton "Valider"
-        setLayout(mainLayout); // Définition du layout principal
+        mainLayout->addLayout(topLayout);
+        mainLayout->addLayout(bottomLayout);
+        setLayout(mainLayout);
     }
 
 private slots:
@@ -98,7 +89,7 @@ private slots:
             customBaudRateLineEdit->setEnabled(true);
             baudRateComboBox->setEnabled(false);
             // Appliquer le style avec la flèche rouge
-            baudRateComboBox->setStyleSheet("QComboBox::down-arrow { border-color: red; }");
+            baudRateComboBox->setStyleSheet("QComboBox::down-arrow { border: 1px solid red; }");
         } else {
             customBaudRateLineEdit->setEnabled(false);
             baudRateComboBox->setEnabled(true);
@@ -126,14 +117,6 @@ private slots:
     }
 
 private:
-    QHBoxLayout *createFormItem(const QString &labelText, QWidget *widget) {
-        QLabel *label = new QLabel(labelText);
-        QHBoxLayout *layout = new QHBoxLayout;
-        layout->addWidget(label);
-        layout->addWidget(widget);
-        return layout;
-    }
-
     QComboBox *portComboBox;
     QComboBox *baudRateComboBox;
     QLineEdit *customBaudRateLineEdit;
@@ -148,7 +131,6 @@ private:
 int main(int argc, char *argv[]) {
     QApplication app(argc, argv);
 
-    // Appliquer la feuille de style
     QFile file(":/styles/stylesheet.qss");
     if (file.open(QFile::ReadOnly | QFile::Text)) {
         QTextStream stream(&file);
