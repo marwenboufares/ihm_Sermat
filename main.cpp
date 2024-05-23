@@ -57,6 +57,16 @@ public:
         submitButton->setFixedWidth(150);
         connect(submitButton, &QPushButton::clicked, this, &UARTConfigForm::submitForm);
 
+        // Bouton d'envoi de données
+        sendButton = new QPushButton("Envoyer", this);
+        sendButton->setFixedWidth(150);
+        connect(sendButton, &QPushButton::clicked, this, &UARTConfigForm::sendData);
+
+        // Label pour la LED
+        statusLabel = new QLabel(this);
+        statusLabel->setFixedSize(20, 20); // Taille fixe
+        updateStatusLabel(false);
+
         // TopLayout pour les champs de saisie, etc.
         QFormLayout *topLayout = new QFormLayout;
         topLayout->addRow("Port COM :", portComboBox);
@@ -77,12 +87,17 @@ public:
         QHBoxLayout *bottomLayout = new QHBoxLayout;
         bottomLayout->addStretch(); // Ajout d'espacement à gauche
         bottomLayout->addWidget(submitButton); // Ajout du bouton "Valider" à droite
+        bottomLayout->addWidget(sendButton); // Ajout du bouton "Envoyer" à droite
+        bottomLayout->addWidget(statusLabel); // Ajout du label de statut (LED)
 
         // Layout principal de la fenêtre
         QVBoxLayout *mainLayout = new QVBoxLayout;
         mainLayout->addLayout(topLayout); // Ajout du layout des champs de saisie
-        mainLayout->addLayout(bottomLayout); // Ajout du layout pour le bouton "Valider"
+        mainLayout->addLayout(bottomLayout); // Ajout du layout pour les boutons
         setLayout(mainLayout); // Définition du layout principal
+
+        // Initialiser le port série
+        serialPort = new QSerialPort(this);
     }
 
 private slots:
@@ -120,9 +135,32 @@ private slots:
         QString dataBits = dataBitsComboBox->currentText();
         QString stopBits = stopBitsComboBox->currentText();
 
-        QMessageBox::information(this, "Configuration UART",
-                                 QString("Port COM : %1\nVitesse : %2\nType de signal : %3\nParité : %4\nBits de données : %5\nBits de stop : %6")
-                                     .arg(port).arg(baudRate).arg(signalType).arg(parity).arg(dataBits).arg(stopBits));
+        // Configurer le port série
+        serialPort->setPortName(port);
+        serialPort->setBaudRate(baudRate.toInt());
+        serialPort->setDataBits(static_cast<QSerialPort::DataBits>(dataBits.toInt()));
+        serialPort->setParity(static_cast<QSerialPort::Parity>(parityComboBox->currentIndex()));
+        serialPort->setStopBits(static_cast<QSerialPort::StopBits>(stopBitsComboBox->currentIndex() + 1));
+        serialPort->setFlowControl(QSerialPort::NoFlowControl);
+
+        if (serialPort->open(QIODevice::ReadWrite)) {
+            QMessageBox::information(this, "Configuration UART", "Port série ouvert avec succès !");
+            updateStatusLabel(true);
+        } else {
+            QMessageBox::critical(this, "Erreur", "Échec de l'ouverture du port série !");
+            updateStatusLabel(false);
+        }
+    }
+
+    void sendData() {
+        if (serialPort->isOpen() && serialPort->isWritable()) {
+            // Exemple d'envoi de consigne
+            QString consigne = "Exemple de consigne à envoyer au dsPIC";
+            serialPort->write(consigne.toUtf8());
+            QMessageBox::information(this, "Envoyer", "Consigne envoyée avec succès !");
+        } else {
+            QMessageBox::critical(this, "Erreur", "Le port série n'est pas ouvert ou non accessible en écriture !");
+        }
     }
 
 private:
@@ -134,6 +172,14 @@ private:
         return layout;
     }
 
+    void updateStatusLabel(bool isConnected) {
+        if (isConnected) {
+            statusLabel->setStyleSheet("background-color: green; border-radius: 10px; width: 20px; height: 20px;");
+        } else {
+            statusLabel->setStyleSheet("background-color: red; border-radius: 10px; width: 20px; height: 20px;");
+        }
+    }
+
     QComboBox *portComboBox;
     QComboBox *baudRateComboBox;
     QLineEdit *customBaudRateLineEdit;
@@ -142,7 +188,10 @@ private:
     QComboBox *dataBitsComboBox;
     QComboBox *stopBitsComboBox;
     QPushButton *submitButton;
+    QPushButton *sendButton;
     QCheckBox *customBaudRateCheckBox;
+    QSerialPort *serialPort;
+    QLabel *statusLabel; // Label pour la LED
 };
 
 int main(int argc, char *argv[]) {
