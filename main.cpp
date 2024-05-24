@@ -11,9 +11,10 @@
 #include <QSerialPort>
 #include <QFile>
 #include <QTextStream>
-#include <QScreen> // Pour accéder aux informations sur l'écran
-#include <QHBoxLayout> // Pour utiliser QHBoxLayout
-#include <QLabel> // Pour utiliser QLabel
+#include <QScreen>
+#include <QHBoxLayout>
+#include <QLabel>
+#include <QFrame>
 
 class UARTConfigForm : public QWidget {
 public:
@@ -21,7 +22,7 @@ public:
         setWindowTitle("Configuration UART");
 
         // Définir la taille de l'application
-        resize(800, 400); // Remplacez ces valeurs par les dimensions souhaitées
+        resize(800, 400);
 
         // Positionner l'application au centre de l'écran
         QRect screenGeometry = QGuiApplication::screens().first()->geometry();
@@ -60,12 +61,18 @@ public:
         // Bouton d'envoi de données
         sendButton = new QPushButton("Envoyer", this);
         sendButton->setFixedWidth(150);
+        sendButton->setEnabled(false); // Désactiver le bouton au début
         connect(sendButton, &QPushButton::clicked, this, &UARTConfigForm::sendData);
 
         // Label pour la LED
         statusLabel = new QLabel(this);
         statusLabel->setFixedSize(20, 20); // Taille fixe
         updateStatusLabel(false);
+
+        // Champs de saisie pour Amplitude, Portée, et Angle
+        amplitudeLineEdit = new QLineEdit(this);
+        rangeLineEdit = new QLineEdit(this);
+        angleLineEdit = new QLineEdit(this);
 
         // TopLayout pour les champs de saisie, etc.
         QFormLayout *topLayout = new QFormLayout;
@@ -87,13 +94,30 @@ public:
         QHBoxLayout *bottomLayout = new QHBoxLayout;
         bottomLayout->addStretch(); // Ajout d'espacement à gauche
         bottomLayout->addWidget(submitButton); // Ajout du bouton "Valider" à droite
-        bottomLayout->addWidget(sendButton); // Ajout du bouton "Envoyer" à droite
         bottomLayout->addWidget(statusLabel); // Ajout du label de statut (LED)
+
+        // Ligne de séparation
+        QFrame *line = new QFrame();
+        line->setFrameShape(QFrame::HLine);
+        line->setFrameShadow(QFrame::Sunken);
+
+        // Layout pour les nouveaux champs de saisie
+        QFormLayout *newFieldsLayout = new QFormLayout;
+        newFieldsLayout->addRow("Amplitude :", amplitudeLineEdit);
+        newFieldsLayout->addRow("Portée :", rangeLineEdit);
+        newFieldsLayout->addRow("Angle :", angleLineEdit);
+
+        QHBoxLayout *sendButtonLayout = new QHBoxLayout;
+        sendButtonLayout->addStretch(); // Ajout d'espacement à gauche
+        sendButtonLayout->addWidget(sendButton); // Ajout du bouton "Envoyer" à droite
 
         // Layout principal de la fenêtre
         QVBoxLayout *mainLayout = new QVBoxLayout;
-        mainLayout->addLayout(topLayout); // Ajout du layout des champs de saisie
-        mainLayout->addLayout(bottomLayout); // Ajout du layout pour les boutons
+        mainLayout->addLayout(topLayout);
+        mainLayout->addLayout(bottomLayout);
+        mainLayout->addWidget(line);
+        mainLayout->addLayout(newFieldsLayout);
+        mainLayout->addLayout(sendButtonLayout);
         setLayout(mainLayout); // Définition du layout principal
 
         // Initialiser le port série
@@ -146,17 +170,25 @@ private slots:
         if (serialPort->open(QIODevice::ReadWrite)) {
             QMessageBox::information(this, "Configuration UART", "Port série ouvert avec succès !");
             updateStatusLabel(true);
+            sendButton->setEnabled(true); // Activer le bouton "Envoyer"
         } else {
             QMessageBox::critical(this, "Erreur", "Échec de l'ouverture du port série !");
             updateStatusLabel(false);
+            sendButton->setEnabled(false); // Désactiver le bouton "Envoyer"
         }
     }
 
     void sendData() {
         if (serialPort->isOpen() && serialPort->isWritable()) {
-            // Exemple d'envoi de consigne
-            QString consigne = "Exemple de consigne à envoyer au dsPIC";
-            serialPort->write(consigne.toUtf8());
+            QString amplitude = amplitudeLineEdit->text();
+            QString range = rangeLineEdit->text();
+            QString angle = angleLineEdit->text();
+            // Envoyer les données au microcontrôleur
+            QString data = QString("Amplitude: %1, Portée: %2, Angle: %3")
+                               .arg(amplitude)
+                               .arg(range)
+                               .arg(angle);
+            serialPort->write(data.toUtf8());
             QMessageBox::information(this, "Envoyer", "Consigne envoyée avec succès !");
         } else {
             QMessageBox::critical(this, "Erreur", "Le port série n'est pas ouvert ou non accessible en écriture !");
@@ -191,7 +223,12 @@ private:
     QPushButton *sendButton;
     QCheckBox *customBaudRateCheckBox;
     QSerialPort *serialPort;
-    QLabel *statusLabel; // Label pour la LED
+    QLabel *statusLabel;
+
+    // Champs de saisie supplémentaires
+    QLineEdit *amplitudeLineEdit;
+    QLineEdit *rangeLineEdit;
+    QLineEdit *angleLineEdit;
 };
 
 int main(int argc, char *argv[]) {
