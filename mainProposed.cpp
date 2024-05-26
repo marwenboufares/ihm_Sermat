@@ -14,16 +14,21 @@
 #include <QScreen>
 #include <QHBoxLayout>
 #include <QLabel>
+#include <QFrame>
 
 class UARTConfigForm : public QWidget {
 public:
     UARTConfigForm(QWidget *parent = nullptr) : QWidget(parent) {
         setWindowTitle("Configuration UART");
 
+        // Définir la taille de l'application
         resize(800, 400);
+
+        // Positionner l'application au centre de l'écran
         QRect screenGeometry = QGuiApplication::screens().first()->geometry();
         move((screenGeometry.width() - width()) / 2, (screenGeometry.height() - height()) / 2);
 
+        // Création des champs de saisie
         portComboBox = new QComboBox(this);
         detectCOMPorts();
 
@@ -33,7 +38,7 @@ public:
         customBaudRateLineEdit = new QLineEdit(this);
 
         customBaudRateCheckBox = new QCheckBox(this);
-        customBaudRateLineEdit->setEnabled(false);
+        customBaudRateLineEdit->setEnabled(false); // Désactiver l'éditeur de ligne au début
         connect(customBaudRateCheckBox, &QCheckBox::stateChanged, this, &UARTConfigForm::toggleCustomBaudRate);
 
         signalTypeComboBox = new QComboBox(this);
@@ -48,14 +53,33 @@ public:
         stopBitsComboBox = new QComboBox(this);
         stopBitsComboBox->addItems({"1", "1.5", "2"});
 
+        // Bouton de validation
         submitButton = new QPushButton("Valider", this);
         submitButton->setFixedWidth(150);
         connect(submitButton, &QPushButton::clicked, this, &UARTConfigForm::submitForm);
 
+        // Bouton d'envoi de données
+        sendButton = new QPushButton("Envoyer", this);
+        sendButton->setFixedWidth(150);
+        //sendButton->setEnabled(false); // Désactiver le bouton au début
+        connect(sendButton, &QPushButton::clicked, this, &UARTConfigForm::sendData);
+
+        // Label pour la LED
+        statusLabel = new QLabel(this);
+        statusLabel->setFixedSize(20, 20); // Taille fixe
+        updateStatusLabel(false);
+
+        // Champs de saisie pour Amplitude, Portée, et Angle
+        amplitudeLineEdit = new QLineEdit(this);
+        rangeLineEdit = new QLineEdit(this);
+        angleLineEdit = new QLineEdit(this);
+
+        // TopLayout pour les champs de saisie, etc.
         QFormLayout *topLayout = new QFormLayout;
         topLayout->addRow("Port COM :", portComboBox);
         topLayout->addRow("Vitesse standard :", baudRateComboBox);
 
+        // Créer un layout horizontal pour la checkbox et l'éditeur de ligne
         QHBoxLayout *customBaudRateLayout = new QHBoxLayout;
         customBaudRateLayout->addWidget(customBaudRateCheckBox);
         customBaudRateLayout->addWidget(customBaudRateLineEdit);
@@ -66,14 +90,50 @@ public:
         topLayout->addRow("Bits de données :", dataBitsComboBox);
         topLayout->addRow("Bits de stop :", stopBitsComboBox);
 
+        // BasLayout horizontal pour le bas de la fenêtre
         QHBoxLayout *bottomLayout = new QHBoxLayout;
-        bottomLayout->addStretch();
-        bottomLayout->addWidget(submitButton);
+        bottomLayout->addStretch(); // Ajout d'espacement à gauche
+        bottomLayout->addWidget(submitButton); // Ajout du bouton "Valider" à droite
+        bottomLayout->addWidget(statusLabel); // Ajout du label de statut (LED)
 
+        // Ligne de séparation
+        line = new QFrame();
+        line->setFrameShape(QFrame::HLine);
+        line->setFrameShadow(QFrame::Sunken);
+
+        // Layout pour les nouveaux champs de saisie
+        QFormLayout *newFieldsLayout = new QFormLayout;
+        newFieldsLayout->addRow("Amplitude :", amplitudeLineEdit);
+        newFieldsLayout->addRow("Portée :", rangeLineEdit);
+        newFieldsLayout->addRow("Angle :", angleLineEdit);
+
+        // Widget pour encapsuler les nouveaux champs et le bouton "Envoyer"
+        newFieldsWidget = new QWidget(this);
+        newFieldsWidget->setLayout(newFieldsLayout);
+        //newFieldsWidget->setEnabled(false); // Désactiver le widget au début
+
+        QHBoxLayout *sendButtonLayout = new QHBoxLayout;
+        sendButtonLayout->addStretch(); // Ajout d'espacement à gauche
+        sendButtonLayout->addWidget(sendButton); // Ajout du bouton "Envoyer" à droite
+
+        QVBoxLayout *fieldsAndButtonLayout = new QVBoxLayout;
+        fieldsAndButtonLayout->addWidget(newFieldsWidget);
+        fieldsAndButtonLayout->addLayout(sendButtonLayout);
+
+        // Widget contenant le layout des champs et boutons pour appliquer le style
+        mainContentWidget = new QWidget(this);
+        mainContentWidget->setLayout(fieldsAndButtonLayout);
+
+        // Layout principal de la fenêtre
         QVBoxLayout *mainLayout = new QVBoxLayout;
         mainLayout->addLayout(topLayout);
         mainLayout->addLayout(bottomLayout);
-        setLayout(mainLayout);
+        mainLayout->addWidget(line);
+        mainLayout->addWidget(mainContentWidget);
+        setLayout(mainLayout); // Définition du layout principal
+
+        // Initialiser le port série
+        serialPort = new QSerialPort(this);
     }
 
 private slots:
@@ -89,7 +149,7 @@ private slots:
             customBaudRateLineEdit->setEnabled(true);
             baudRateComboBox->setEnabled(false);
             // Appliquer le style avec la flèche rouge
-            baudRateComboBox->setStyleSheet("QComboBox::down-arrow { border: 1px solid red; }");
+            baudRateComboBox->setStyleSheet("QComboBox::down-arrow { border-color: red; }");
         } else {
             customBaudRateLineEdit->setEnabled(false);
             baudRateComboBox->setEnabled(true);
@@ -111,12 +171,67 @@ private slots:
         QString dataBits = dataBitsComboBox->currentText();
         QString stopBits = stopBitsComboBox->currentText();
 
-        QMessageBox::information(this, "Configuration UART",
-                                 QString("Port COM : %1\nVitesse : %2\nType de signal : %3\nParité : %4\nBits de données : %5\nBits de stop : %6")
-                                     .arg(port).arg(baudRate).arg(signalType).arg(parity).arg(dataBits).arg(stopBits));
+        // Configurer le port série
+        serialPort->setPortName(port);
+        serialPort->setBaudRate(baudRate.toInt());
+        serialPort->setDataBits(static_cast<QSerialPort::DataBits>(dataBits.toInt()));
+        serialPort->setParity(static_cast<QSerialPort::Parity>(parityComboBox->currentIndex()));
+        serialPort->setStopBits(static_cast<QSerialPort::StopBits>(stopBitsComboBox->currentIndex() + 1));
+        serialPort->setFlowControl(QSerialPort::NoFlowControl);
+
+        if (serialPort->open(QIODevice::ReadWrite)) {
+            QMessageBox::information(this, "Configuration UART", "Port série ouvert avec succès !");
+            updateStatusLabel(true);
+            updateMainContentWidget(true);
+        } else {
+            QMessageBox::critical(this, "Erreur", "Échec de l'ouverture du port série !");
+            updateStatusLabel(false);
+            updateMainContentWidget(false);
+        }
+    }
+
+    void sendData() {
+        if (serialPort->isOpen() && serialPort->isWritable()) {
+            QString amplitude = amplitudeLineEdit->text();
+            QString range = rangeLineEdit->text();
+            QString angle = angleLineEdit->text();
+            // Envoyer les données au microcontrôleur
+            QString data = QString("Amplitude: %1, Portée: %2, Angle: %3")
+                               .arg(amplitude)
+                               .arg(range)
+                               .arg(angle);
+            serialPort->write(data.toUtf8());
+            QMessageBox::information(this, "Envoyer", "Consigne envoyée avec succès !");
+        } else {
+            QMessageBox::critical(this, "Erreur", "Le port série n'est pas ouvert ou non accessible en écriture !");
+        }
     }
 
 private:
+    QHBoxLayout *createFormItem(const QString &labelText, QWidget *widget) {
+        QLabel *label = new QLabel(labelText);
+        QHBoxLayout *layout = new QHBoxLayout;
+        layout->addWidget(label);
+        layout->addWidget(widget);
+        return layout;
+    }
+
+    void updateStatusLabel(bool isConnected) {
+        if (isConnected) {
+            statusLabel->setStyleSheet("background-color: green; border-radius: 10px; width: 20px; height: 20px;");
+        } else {
+            statusLabel->setStyleSheet("background-color: red; border-radius: 10px; width: 20px; height: 20px;");
+        }
+    }
+
+    void updateMainContentWidget(bool isConnected) {
+        if (isConnected) {
+            mainContentWidget->setStyleSheet("");
+        } else {
+            mainContentWidget->setStyleSheet("background-color: #f8d7da;"); // Rouge clair pour indiquer une erreur
+        }
+    }
+
     QComboBox *portComboBox;
     QComboBox *baudRateComboBox;
     QLineEdit *customBaudRateLineEdit;
@@ -125,12 +240,27 @@ private:
     QComboBox *dataBitsComboBox;
     QComboBox *stopBitsComboBox;
     QPushButton *submitButton;
+    QPushButton *sendButton;
     QCheckBox *customBaudRateCheckBox;
+    QSerialPort *serialPort;
+    QLabel *statusLabel;
+
+    // Champs de saisie supplémentaires
+    QLineEdit *amplitudeLineEdit;
+    QLineEdit *rangeLineEdit;
+    QLineEdit *angleLineEdit;
+
+    // Widget pour les nouveaux champs et le bouton "Envoyer"
+    QWidget *newFieldsWidget;
+    QWidget *mainContentWidget; // Widget contenant les nouveaux champs et le bouton "Envoyer"
+
+    QFrame *line;
 };
 
 int main(int argc, char *argv[]) {
     QApplication app(argc, argv);
 
+    // Appliquer la feuille de style
     QFile file(":/styles/stylesheet.qss");
     if (file.open(QFile::ReadOnly | QFile::Text)) {
         QTextStream stream(&file);

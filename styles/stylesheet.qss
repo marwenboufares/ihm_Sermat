@@ -1,44 +1,46 @@
 /* General Widget Styling */
 QWidget {
-    background-color: #2E2E2E;
-    color: #E0E0E0;
+    background-color: #F5F5F5;
+    color: #333333;
     font-family: "Segoe UI", Arial, sans-serif;
     font-size: 12px;
 }
 
 /* QLineEdit Styling */
 QLineEdit {
-    background-color: #3C3C3C;
-    border: 1px solid #4A4A4A;
+    background-color: #FFFFFF;
+    border: 1px solid #CCCCCC;
     padding: 5px;
     border-radius: 5px;
-    color: #E0E0E0;
-    transition: border-color 0.2s;
+    color: #333333;
+    transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 QLineEdit:focus {
-    border-color: #3ec5cf;
+    border-color: #3EC5CF;
+    box-shadow: 0 0 5px rgba(62, 197, 207, 0.5);
 }
 
 /* QComboBox Styling */
 QComboBox {
-    background-color: #3C3C3C;
-    border: 1px solid #4A4A4A;
+    background-color: #FFFFFF;
+    border: 1px solid #CCCCCC;
     padding: 5px;
     border-radius: 5px;
-    color: #E0E0E0;
-    transition: border-color 0.2s;
+    color: #333333;
+    transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 QComboBox:focus {
-    border-color: #3ec5cf;
+    border-color: #3EC5CF;
+    box-shadow: 0 0 5px rgba(62, 197, 207, 0.5);
 }
 
 QComboBox QAbstractItemView {
-    background-color: #3C3C3C;
-    border: 1px solid #4A4A4A;
-    selection-background-color: #555555;
-    color: #E0E0E0;
+    background-color: #FFFFFF;
+    border: 1px solid #CCCCCC;
+    selection-background-color: rgb(255, 0, 0);
+    color: #333333;
 }
 
 QComboBox::drop-down {
@@ -58,16 +60,17 @@ QComboBox::down-arrow:disabled {
 
 /* QSpinBox Styling */
 QSpinBox {
-    background-color: #3C3C3C;
-    border: 1px solid #4A4A4A;
+    background-color: #FFFFFF;
+    border: 1px solid #CCCCCC;
     padding: 5px;
     border-radius: 5px;
-    color: #E0E0E0;
-    transition: border-color 0.2s;
+    color: #333333;
+    transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 QSpinBox:focus {
-    border-color: #3ec5cf;
+    border-color: #3EC5CF;
+    box-shadow: 0 0 5px rgba(62, 197, 207, 0.5);
 }
 
 QSpinBox::up-button, QSpinBox::down-button {
@@ -87,26 +90,26 @@ QSpinBox::up-arrow, QSpinBox::down-arrow {
 
 /* QPushButton Styling */
 QPushButton {
-    background-color: #555555;
-    border: 1px solid #4A4A4A;
+    background-color: #3EC5CF;
+    border: 1px solid #CCCCCC;
     padding: 5px 10px;
     border-radius: 5px;
-    color: #E0E0E0;
-    transition: background-color 0.2s, border-color 0.2s;
+    color: #FFFFFF;
+    transition: background-color 0.2s, border-color 0.2s, box-shadow 0.2s;
 }
 
 QPushButton:hover {
-    background-color: #666666;
-    border-color: #3ec5cf;
+    background-color: #32B5C1;
+    border-color: #3EC5CF;
 }
 
 QPushButton:pressed {
-    background-color: #3ec5cf;
+    background-color: #289BA9;
 }
 
 /* QCheckBox Styling */
 QCheckBox {
-    color: #E0E0E0;
+    color: #333333;
     padding: 5px;
 }
 
@@ -133,5 +136,15 @@ QCheckBox::indicator:checked:hover {
 
 /* QLabel Styling */
 QLabel {
-    color: #3EC5CF;
+    color: #206267;
+    font-size: 13px;
+}
+
+
+/* Style for the new fields widget (main content area) */
+.newFieldsWidget {
+    background-color: #E0F7FA;
+    border: 1px solid #3EC5CF;
+    border-radius: 5px;
+    padding: 10px;
 }
