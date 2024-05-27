@@ -15,11 +15,52 @@
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QFrame>
+#include <QTextEdit>
+#include <QTabWidget>
+#include <QVBoxLayout>
+
+class TerminalTab : public QWidget {
+public:
+    TerminalTab(QWidget *parent = nullptr) : QWidget(parent) {
+        QVBoxLayout *layout = new QVBoxLayout(this);
+
+        // Création de QTextEdit pour afficher le contenu
+        textEdit = new QTextEdit(this);
+        textEdit->setReadOnly(true); // Rendre le QTextEdit en lecture seule
+        layout->addWidget(textEdit);
+
+        // Création du QSerialPort pour lire les données de l'UART
+        serialPort = new QSerialPort(this);
+        connect(serialPort, &QSerialPort::readyRead, this, &TerminalTab::readData);
+    }
+
+    // Méthode pour ouvrir le port série avec le nom spécifié
+    void openSerialPort(const QString &portName) {
+        if (!serialPort->isOpen()) {
+            serialPort->setPortName(portName);
+            if (serialPort->open(QIODevice::ReadOnly)) {
+                // Succès de l'ouverture du port série
+            } else {
+                // Échec de l'ouverture du port série
+            }
+        }
+    }
+
+private slots:
+    void readData() {
+        QByteArray data = serialPort->readAll(); // Lire les données de l'UART
+        textEdit->append(QString::fromUtf8(data)); // Afficher les données dans le QTextEdit
+    }
+
+private:
+    QTextEdit *textEdit;
+    QSerialPort *serialPort;
+};
 
 class UARTConfigForm : public QWidget {
 public:
     UARTConfigForm(QWidget *parent = nullptr) : QWidget(parent) {
-        setWindowTitle("Configuration UART");
+        setWindowTitle("S-Actium config");
 
         // Définir la taille de l'application
         resize(800, 400);
@@ -125,12 +166,23 @@ public:
         mainContentWidget->setStyleSheet("background-color: #D3D3D3;");
         mainContentWidget->setLayout(fieldsAndButtonLayout);
 
+        // Ajout de l'onglet Terminal
+        terminalTab = new TerminalTab(this);
+
+        // Création d'un widget à onglets et ajout des onglets
+        QTabWidget *tabWidget = new QTabWidget(this);
+        tabWidget->addTab(mainContentWidget, "Configuration banc");
+        tabWidget->addTab(mainContentWidget, "Actionneur 1");
+        tabWidget->addTab(mainContentWidget, "Actionneur 2");
+        tabWidget->addTab(mainContentWidget, "Simultané");
+        tabWidget->addTab(terminalTab, "Terminal");
+
         // Layout principal de la fenêtre
         QVBoxLayout *mainLayout = new QVBoxLayout;
         mainLayout->addLayout(topLayout);
         mainLayout->addLayout(bottomLayout);
         mainLayout->addWidget(line);
-        mainLayout->addWidget(mainContentWidget);
+        mainLayout->addWidget(tabWidget); // Ajout du widget à onglets
         setLayout(mainLayout); // Définition du layout principal
 
         // Initialiser le port série
@@ -254,6 +306,8 @@ private:
     // Widget pour les nouveaux champs et le bouton "Envoyer"
     QWidget *newFieldsWidget;
     QWidget *mainContentWidget; // Widget contenant les nouveaux champs et le bouton "Envoyer"
+    TerminalTab *terminalTab; // Onglet Terminal
+    QTabWidget *tabWidget;
 
     QFrame *line;
 };
