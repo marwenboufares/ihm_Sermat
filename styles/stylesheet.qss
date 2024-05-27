@@ -140,11 +140,70 @@ QLabel {
     font-size: 13px;
 }
 
-
 /* Style for the new fields widget (main content area) */
 .newFieldsWidget {
     background-color: #E0F7FA;
     border: 1px solid #3EC5CF;
     border-radius: 5px;
     padding: 10px;
+}
+
+/* QRadioButton Styling */
+QRadioButton {
+    color: #333333;
+    padding: 5px;
+    font-size: 12px;
+}
+
+QRadioButton::indicator {
+    width: 16px;
+    height: 16px;
+    border-radius: 8px;
+    border: 1px solid #CCCCCC;
+    background-color: #FFFFFF;
+    transition: background-color 0.2s, border-color 0.2s;
+}
+
+QRadioButton::indicator:checked {
+    background-color: #3EC5CF;
+    border-color: #3EC5CF;
+}
+
+QRadioButton::indicator:unchecked:hover {
+    border-color: #3EC5CF;
+}
+
+QRadioButton::indicator:checked:hover {
+    background-color: #32B5C1;
+    border-color: #32B5C1;
+}
+
+/* QTabWidget Styling */
+QTabWidget::pane {
+    border-top: 2px solid #3EC5CF;
+    background-color: #E0F7FA;
+    border-radius: 5px;
+}
+
+QTabBar::tab {
+    background-color: #FFFFFF;
+    border: 1px solid #CCCCCC;
+    border-bottom: none;
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+    padding: 5px 10px;
+    margin-right: 2px;
+    color: #333333;
+    font-size: 12px;
+    transition: background-color 0.2s, border-color 0.2s;
+}
+
+QTabBar::tab:selected, QTabBar::tab:hover {
+    background-color: #3EC5CF;
+    border-color: #3EC5CF;
+    color: #FFFFFF;
+}
+
+QTabBar::tab:!selected {
+    margin-top: 2px; /* Push non-selected tabs down a bit */
 }
