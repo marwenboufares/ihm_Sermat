@@ -18,6 +18,9 @@
 #include <QTextEdit>
 #include <QTabWidget>
 #include <QVBoxLayout>
+#include <QRadioButton>
+#include <QGroupBox>
+#include <QDebug> // Pour les messages de débogage
 
 class TerminalTab : public QWidget {
 public:
@@ -135,6 +138,20 @@ public:
         configBancTab = new QWidget(this);
         configBancTab->setStyleSheet("background-color: #D3D3D3;");
 
+        // Ajout des boutons radio à l'onglet configBancTab
+        QRadioButton *independentRadioButton = new QRadioButton("Pilotage indépendant", this);
+        independentRadioButton->setObjectName("independentRadioButton");
+        QRadioButton *simultaneousRadioButton = new QRadioButton("Pilotage simultané", this);
+        simultaneousRadioButton->setObjectName("simultaneousRadioButton");
+        QPushButton *confirmButton = new QPushButton("Confirmer", this);
+        connect(confirmButton, &QPushButton::clicked, this, &UARTConfigForm::confirmSelection);
+
+        QVBoxLayout *configBancLayout = new QVBoxLayout;
+        configBancLayout->addWidget(independentRadioButton);
+        configBancLayout->addWidget(simultaneousRadioButton);
+        configBancLayout->addWidget(confirmButton);
+        configBancTab->setLayout(configBancLayout);
+
         // ONGLET ACTIONNEUR 1
         actionneur1Tab = new QWidget(this);
         actionneur1Tab->setStyleSheet("background-color: #D3D3D3;");
@@ -179,8 +196,8 @@ private slots:
         }
     }
 
-    void toggleCustomBaudRate(int state) {
-        if (state == Qt::Checked) {
+    void toggleCustomBaudRate() {
+        if (customBaudRateCheckBox->isChecked()) {
             customBaudRateLineEdit->setEnabled(true);
             baudRateComboBox->setEnabled(false);
             // Appliquer le style avec la flèche rouge
@@ -222,6 +239,33 @@ private slots:
             QMessageBox::critical(this, "Erreur", "Échec de l'ouverture du port série !");
             updateStatusLabel(false);
             disableTabs(true); //A inverser juste pour test
+        }
+    }
+
+    void confirmSelection() {
+        qDebug() << "confirmSelection called"; // Message de débogage
+
+        QRadioButton *independentRadioButton = configBancTab->findChild<QRadioButton *>("independentRadioButton");
+        QRadioButton *simultaneousRadioButton = configBancTab->findChild<QRadioButton *>("simultaneousRadioButton");
+
+        if (independentRadioButton && independentRadioButton->isChecked()) {
+            qDebug() << "Independent mode selected"; // Message de débogage
+            int indexSimultaneTab = tabWidget->indexOf(simultaneTab);
+            int indexActionneur1Tab = tabWidget->indexOf(actionneur1Tab);
+            int indexActionneur2Tab = tabWidget->indexOf(actionneur2Tab);
+            if (indexSimultaneTab != -1) tabWidget->setTabEnabled(indexSimultaneTab, false);
+            if (indexActionneur1Tab != -1) tabWidget->setTabEnabled(indexActionneur1Tab, true);
+            if (indexActionneur2Tab != -1) tabWidget->setTabEnabled(indexActionneur2Tab, true);
+        } else if (simultaneousRadioButton && simultaneousRadioButton->isChecked()) {
+            qDebug() << "Simultaneous mode selected"; // Message de débogage
+            int indexSimultaneTab = tabWidget->indexOf(simultaneTab);
+            int indexActionneur1Tab = tabWidget->indexOf(actionneur1Tab);
+            int indexActionneur2Tab = tabWidget->indexOf(actionneur2Tab);
+            if (indexSimultaneTab != -1) tabWidget->setTabEnabled(indexSimultaneTab, true);
+            if (indexActionneur1Tab != -1) tabWidget->setTabEnabled(indexActionneur1Tab, false);
+            if (indexActionneur2Tab != -1) tabWidget->setTabEnabled(indexActionneur2Tab, false);
+        } else {
+            qDebug() << "No valid mode selected"; // Message de débogage
         }
     }
 
