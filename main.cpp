@@ -99,21 +99,10 @@ public:
         submitButton->setFixedWidth(150);
         connect(submitButton, &QPushButton::clicked, this, &UARTConfigForm::submitForm);
 
-        // Bouton d'envoi de données
-        sendButton = new QPushButton("Envoyer", this);
-        sendButton->setFixedWidth(150);
-        //sendButton->setEnabled(false); // Désactiver le bouton au début
-        connect(sendButton, &QPushButton::clicked, this, &UARTConfigForm::sendData);
-
         // Label pour la LED
         statusLabel = new QLabel(this);
         statusLabel->setFixedSize(20, 20); // Taille fixe
         updateStatusLabel(false);
-
-        // Champs de saisie pour Amplitude, Portée, et Angle
-        amplitudeLineEdit = new QLineEdit(this);
-        rangeLineEdit = new QLineEdit(this);
-        angleLineEdit = new QLineEdit(this);
 
         // TopLayout pour les champs de saisie, etc.
         QFormLayout *topLayout = new QFormLayout;
@@ -142,39 +131,32 @@ public:
         line->setFrameShape(QFrame::HLine);
         line->setFrameShadow(QFrame::Sunken);
 
-        // Layout pour les nouveaux champs de saisie
-        QFormLayout *newFieldsLayout = new QFormLayout;
-        newFieldsLayout->addRow("Amplitude :", amplitudeLineEdit);
-        newFieldsLayout->addRow("Portée :", rangeLineEdit);
-        newFieldsLayout->addRow("Angle :", angleLineEdit);
+        // ONGLET CONFIGBANC
+        configBancTab = new QWidget(this);
+        configBancTab->setStyleSheet("background-color: #D3D3D3;");
 
-        // Widget pour encapsuler les nouveaux champs et le bouton "Envoyer"
-        newFieldsWidget = new QWidget(this);
-        newFieldsWidget->setLayout(newFieldsLayout);
-        //newFieldsWidget->setEnabled(false); // Désactiver le widget au début
+        // ONGLET ACTIONNEUR 1
+        actionneur1Tab = new QWidget(this);
+        actionneur1Tab->setStyleSheet("background-color: #D3D3D3;");
 
-        QHBoxLayout *sendButtonLayout = new QHBoxLayout;
-        sendButtonLayout->addStretch(); // Ajout d'espacement à gauche
-        sendButtonLayout->addWidget(sendButton); // Ajout du bouton "Envoyer" à droite
+        // ONGLET ACTIONNEUR 2
+        actionneur2Tab = new QWidget(this);
+        actionneur2Tab->setStyleSheet("background-color: #D3D3D3;");
 
-        QVBoxLayout *fieldsAndButtonLayout = new QVBoxLayout;
-        fieldsAndButtonLayout->addWidget(newFieldsWidget);
-        fieldsAndButtonLayout->addLayout(sendButtonLayout);
+        // ONGLET SIMULTANE
+        simultaneTab = new QWidget(this);
+        simultaneTab->setStyleSheet("background-color: #D3D3D3;");
 
-        // Widget contenant le layout des champs et boutons pour appliquer le style
-        mainContentWidget = new QWidget(this);
-        mainContentWidget->setStyleSheet("background-color: #D3D3D3;");
-        mainContentWidget->setLayout(fieldsAndButtonLayout);
-
-        // Ajout de l'onglet Terminal
+        // ONGLET TERMINAL
         terminalTab = new TerminalTab(this);
+        terminalTab->setStyleSheet("background-color: #D3D3D3;");
 
-        // Création d'un widget à onglets et ajout des onglets
-        QTabWidget *tabWidget = new QTabWidget(this);
-        tabWidget->addTab(mainContentWidget, "Configuration banc");
-        tabWidget->addTab(mainContentWidget, "Actionneur 1");
-        tabWidget->addTab(mainContentWidget, "Actionneur 2");
-        tabWidget->addTab(mainContentWidget, "Simultané");
+        // WIDGET A ONGLETS
+        tabWidget = new QTabWidget(this);
+        tabWidget->addTab(configBancTab, "Configuration banc");
+        tabWidget->addTab(actionneur1Tab, "Actionneur 1");
+        tabWidget->addTab(actionneur2Tab, "Actionneur 2");
+        tabWidget->addTab(simultaneTab, "Simultané");
         tabWidget->addTab(terminalTab, "Terminal");
 
         // Layout principal de la fenêtre
@@ -235,28 +217,11 @@ private slots:
         if (serialPort->open(QIODevice::ReadWrite)) {
             QMessageBox::information(this, "Configuration UART", "Port série ouvert avec succès !");
             updateStatusLabel(true);
-            updateMainContentWidget(false); //A inverser juste pour test
+            disableTabs(false); //A inverser juste pour test
         } else {
             QMessageBox::critical(this, "Erreur", "Échec de l'ouverture du port série !");
             updateStatusLabel(false);
-            updateMainContentWidget(true); //A inverser juste pour test
-        }
-    }
-
-    void sendData() {
-        if (serialPort->isOpen() && serialPort->isWritable()) {
-            QString amplitude = amplitudeLineEdit->text();
-            QString range = rangeLineEdit->text();
-            QString angle = angleLineEdit->text();
-            // Envoyer les données au microcontrôleur
-            QString data = QString("Amplitude: %1, Portée: %2, Angle: %3")
-                               .arg(amplitude)
-                               .arg(range)
-                               .arg(angle);
-            serialPort->write(data.toUtf8());
-            QMessageBox::information(this, "Envoyer", "Consigne envoyée avec succès !");
-        } else {
-            QMessageBox::critical(this, "Erreur", "Le port série n'est pas ouvert ou non accessible en écriture !");
+            disableTabs(true); //A inverser juste pour test
         }
     }
 
@@ -277,11 +242,19 @@ private:
         }
     }
 
-    void updateMainContentWidget(bool isConnected) {
+    void disableTabs(bool isConnected) {
         if (isConnected) {
-            mainContentWidget->setStyleSheet("");
+            configBancTab->setStyleSheet("");
+            actionneur1Tab->setStyleSheet("");
+            actionneur2Tab->setStyleSheet("");
+            simultaneTab->setStyleSheet("");
+            terminalTab->setStyleSheet("");
         } else {
-            mainContentWidget->setStyleSheet("background-color: #4D4D4D;");
+            configBancTab->setStyleSheet("background-color: #4D4D4D;");
+            actionneur1Tab->setStyleSheet("background-color: #4D4D4D;");
+            actionneur2Tab->setStyleSheet("background-color: #4D4D4D;");
+            simultaneTab->setStyleSheet("background-color: #4D4D4D;");
+            terminalTab->setStyleSheet("background-color: #4D4D4D;");
         }
     }
 
@@ -293,20 +266,16 @@ private:
     QComboBox *dataBitsComboBox;
     QComboBox *stopBitsComboBox;
     QPushButton *submitButton;
-    QPushButton *sendButton;
     QCheckBox *customBaudRateCheckBox;
     QSerialPort *serialPort;
     QLabel *statusLabel;
 
-    // Champs de saisie supplémentaires
-    QLineEdit *amplitudeLineEdit;
-    QLineEdit *rangeLineEdit;
-    QLineEdit *angleLineEdit;
-
     // Widget pour les nouveaux champs et le bouton "Envoyer"
-    QWidget *newFieldsWidget;
-    QWidget *mainContentWidget; // Widget contenant les nouveaux champs et le bouton "Envoyer"
-    TerminalTab *terminalTab; // Onglet Terminal
+    QWidget *configBancTab;     // ONGLET CONFIGBANC
+    QWidget *actionneur1Tab;    // ONGLET ACTIONNEUR1
+    QWidget *actionneur2Tab;    // ONGLET ACTIONNEUR2
+    QWidget *simultaneTab;      // ONGLET SIMULTANE
+    TerminalTab *terminalTab;   // ONGLET TERMINAL
     QTabWidget *tabWidget;
 
     QFrame *line;
