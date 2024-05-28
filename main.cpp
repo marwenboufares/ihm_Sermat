@@ -140,16 +140,18 @@ public:
         configBancTab = new QWidget(this);
         configBancTab->setStyleSheet("background-color: #D3D3D3;");
 
-        // Ajout des boutons radio à l'onglet configBancTab
-        QRadioButton *independentVEURadioButton = new QRadioButton(this);
-        independentVEURadioButton->setObjectName("independentVEURadioButton");
-        connect(independentVEURadioButton, &QRadioButton::clicked, this, &UARTConfigForm::gererSelection);
-        QRadioButton *independentVEVRadioButton = new QRadioButton(this);
-        independentVEVRadioButton->setObjectName("independentVEVRadioButton");
-        connect(independentVEVRadioButton, &QRadioButton::clicked, this, &UARTConfigForm::gererSelection);
-        QRadioButton *simultaneousRadioButton = new QRadioButton(this);
-        simultaneousRadioButton->setObjectName("simultaneousRadioButton");
-        connect(simultaneousRadioButton, &QRadioButton::clicked, this, &UARTConfigForm::gererSelection);
+        independentVEUCheckBox = new QCheckBox(this);
+        independentVEUCheckBox->setObjectName("independentVEUCheckBox");
+        independentVEVCheckBox = new QCheckBox(this);
+        independentVEVCheckBox->setObjectName("independentVEVCheckBox");
+        simultaneousCheckBox   = new QCheckBox(this);
+        simultaneousCheckBox->setObjectName("simultaneousCheckBox");
+
+        // Connexion des signaux stateChanged à la fonction gererSelection
+        connect(independentVEUCheckBox, &QCheckBox::stateChanged, this, &UARTConfigForm::gererSelection);
+        connect(independentVEVCheckBox, &QCheckBox::stateChanged, this, &UARTConfigForm::gererSelection);
+        connect(simultaneousCheckBox, &QCheckBox::stateChanged, this, &UARTConfigForm::gererSelection);
+
         QPushButton *confirmButton = new QPushButton("Confirmer", this);
         connect(confirmButton, &QPushButton::clicked, this, &UARTConfigForm::confirmSelection);
 
@@ -160,9 +162,9 @@ public:
         tableWidget->setItem(0, 1, new QTableWidgetItem("VEU"));
         tableWidget->setItem(0, 2, new QTableWidgetItem("VEV"));
         tableWidget->setSpan(2, 1, 2, 2); //Fusionner les cellules
-        tableWidget->setCellWidget(1, 1, independentVEURadioButton);
-        tableWidget->setCellWidget(1, 2, independentVEVRadioButton);
-        tableWidget->setCellWidget(2, 1, simultaneousRadioButton);
+        tableWidget->setCellWidget(1, 1, independentVEUCheckBox);
+        tableWidget->setCellWidget(1, 2, independentVEVCheckBox);
+        tableWidget->setCellWidget(2, 1, simultaneousCheckBox);
 
 
 
@@ -263,13 +265,13 @@ private slots:
 
     void confirmSelection() {
 
-        QRadioButton *independentVEURadioButton = configBancTab->findChild<QRadioButton *>("independentVEURadioButton");
-        QRadioButton *independentVEVRadioButton = configBancTab->findChild<QRadioButton *>("independentVEVRadioButton");
-        QRadioButton *simultaneousRadioButton = configBancTab->findChild<QRadioButton *>("simultaneousRadioButton");
+        QCheckBox *independentVEUCheckBox = configBancTab->findChild<QCheckBox *>("independentVEUCheckBox");
+        QCheckBox *independentVEVCheckBox = configBancTab->findChild<QCheckBox *>("independentVEVCheckBox");
+        QCheckBox *simultaneousCheckBox = configBancTab->findChild<QCheckBox *>("simultaneousCheckBox");
 
-        if (independentVEURadioButton && independentVEURadioButton->isChecked())
+        if (independentVEUCheckBox && independentVEUCheckBox->isChecked())
         {
-            if(independentVEVRadioButton && independentVEVRadioButton->isChecked())
+            if(independentVEVCheckBox && independentVEVCheckBox->isChecked())
             {
                 int indexSimultaneTab = tabWidget->indexOf(simultaneTab);
                 int indexActionneur1Tab = tabWidget->indexOf(actionneur1Tab);
@@ -291,9 +293,9 @@ private slots:
 
             }
         }
-        else if(independentVEVRadioButton && independentVEVRadioButton->isChecked())
+        else if(independentVEVCheckBox && independentVEVCheckBox->isChecked())
         {
-            if(independentVEURadioButton && independentVEURadioButton->isChecked())
+            if(independentVEUCheckBox && independentVEUCheckBox->isChecked())
             {
                 int indexSimultaneTab = tabWidget->indexOf(simultaneTab);
                 int indexActionneur1Tab = tabWidget->indexOf(actionneur1Tab);
@@ -315,7 +317,7 @@ private slots:
 
             }
         }
-        else if (simultaneousRadioButton && simultaneousRadioButton->isChecked())
+        else if (simultaneousCheckBox && simultaneousCheckBox->isChecked())
         {
             int indexSimultaneTab = tabWidget->indexOf(simultaneTab);
             int indexActionneur1Tab = tabWidget->indexOf(actionneur1Tab);
@@ -326,6 +328,25 @@ private slots:
             qDebug() << "Que simultané en marche";
         }
     }
+
+    void gererSelection() {
+        QCheckBox *checkbox = qobject_cast<QCheckBox*>(sender());
+        if (checkbox) {
+            // Si le checkbox cliqué est simultaneousCheckBox, décocher les autres
+            if (checkbox->objectName() == "simultaneousCheckBox") {
+                QCheckBox *independentVEUCheckBox = configBancTab->findChild<QCheckBox *>("independentVEUCheckBox");
+                QCheckBox *independentVEVCheckBox = configBancTab->findChild<QCheckBox *>("independentVEVCheckBox");
+                if (independentVEUCheckBox) independentVEUCheckBox->setChecked(false);
+                if (independentVEVCheckBox) independentVEVCheckBox->setChecked(false);
+            }
+            // Si le checkbox cliqué est independentVEUCheckBox, s'assurer que independentVEVCheckBox est également coché
+            else if (checkbox->objectName() == "independentVEUCheckBox" || checkbox->objectName() == "independentVEVCheckBox") {
+                QCheckBox *simultaneousCheckBox = configBancTab->findChild<QCheckBox *>("simultaneousCheckBox");
+                if (simultaneousCheckBox) simultaneousCheckBox->setChecked(false);
+            }
+        }
+    }
+
 
 private:
     QHBoxLayout *createFormItem(const QString &labelText, QWidget *widget) {
@@ -360,15 +381,6 @@ private:
         }
     }
 
-    // Méthode pour gérer la sélection
-    void gererSelection() {
-        QRadioButton *bouton = qobject_cast<QRadioButton*>(sender());
-        if (bouton) {
-            // Inverser l'état de sélection du bouton
-            bouton->setChecked(!bouton->isChecked());
-        }
-    }
-
     QComboBox *portComboBox;
     QComboBox *baudRateComboBox;
     QLineEdit *customBaudRateLineEdit;
@@ -378,6 +390,9 @@ private:
     QComboBox *stopBitsComboBox;
     QPushButton *submitButton;
     QCheckBox *customBaudRateCheckBox;
+    QCheckBox *independentVEUCheckBox;
+    QCheckBox *independentVEVCheckBox;
+    QCheckBox *simultaneousCheckBox;
     QSerialPort *serialPort;
     QLabel *statusLabel;
 
@@ -388,6 +403,10 @@ private:
     QWidget *simultaneTab;      // ONGLET SIMULTANE
     TerminalTab *terminalTab;   // ONGLET TERMINAL
     QTabWidget *tabWidget;
+
+    QRadioButton *simultaneousRadioButton;
+    QRadioButton *independentVEURadioButton;
+    QRadioButton *independentVEVRadioButton;
 
     QFrame *line;
 };

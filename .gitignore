@@ -79,3 +79,5 @@ debug/
 build/
 *.pro.user
 *.qmake.stash
+mainProposed.cpp.bak
+mainProposed.cpp
