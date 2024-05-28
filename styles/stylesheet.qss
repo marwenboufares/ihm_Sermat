@@ -165,7 +165,7 @@ QRadioButton::indicator {
 }
 
 QRadioButton::indicator:checked {
-    background-color: #3EC5CF;
+    background-color: #206267;
     border-color: #3EC5CF;
 }
 
@@ -174,8 +174,8 @@ QRadioButton::indicator:unchecked:hover {
 }
 
 QRadioButton::indicator:checked:hover {
-    background-color: #32B5C1;
-    border-color: #32B5C1;
+    background-color: #206267;
+    border-color: #3EC5CF;
 }
 
 /* QTabWidget Styling */
@@ -206,4 +206,36 @@ QTabBar::tab:selected, QTabBar::tab:hover {
 
 QTabBar::tab:!selected {
     margin-top: 2px; /* Push non-selected tabs down a bit */
+}
+
+/* QTabBar::tab:disabled */
+QTabBar::tab:disabled {
+    background-color: #FF0000; /* Rouge */
+    color: #FFFFFF; /* Texte blanc pour une meilleure lisibilité */
+    border: 1px solid #CCCCCC; /* Bordure grise */
+}
+
+/* QTableWidget Styling */
+QTableWidget {
+    background-color: #FFFFFF;
+    border: 1px solid #CCCCCC;
+    gridline-color: #CCCCCC;
+    border-radius: 5px;
+}
+
+QHeaderView::section {
+    background-color: transparent;
+    color: transparent;
+    padding: 0px;
+    border: none;
+}
+
+QTableWidget::item {
+    padding: 5px;
+    border: none;
+}
+
+QTableWidget::item:selected {
+    background-color: #206267;
+    color: #FFFFFF;
 }

@@ -20,6 +20,8 @@
 #include <QVBoxLayout>
 #include <QRadioButton>
 #include <QGroupBox>
+#include <QTableWidget>
+#include <QTableWidgetItem>
 #include <QDebug> // Pour les messages de débogage
 
 class TerminalTab : public QWidget {
@@ -66,7 +68,7 @@ public:
         setWindowTitle("S-Actium config");
 
         // Définir la taille de l'application
-        resize(800, 400);
+        resize(1000, 600);
 
         // Positionner l'application au centre de l'écran
         QRect screenGeometry = QGuiApplication::screens().first()->geometry();
@@ -139,16 +141,33 @@ public:
         configBancTab->setStyleSheet("background-color: #D3D3D3;");
 
         // Ajout des boutons radio à l'onglet configBancTab
-        QRadioButton *independentRadioButton = new QRadioButton("Pilotage indépendant", this);
-        independentRadioButton->setObjectName("independentRadioButton");
-        QRadioButton *simultaneousRadioButton = new QRadioButton("Pilotage simultané", this);
+        QRadioButton *independentVEURadioButton = new QRadioButton(this);
+        independentVEURadioButton->setObjectName("independentVEURadioButton");
+        connect(independentVEURadioButton, &QRadioButton::clicked, this, &UARTConfigForm::gererSelection);
+        QRadioButton *independentVEVRadioButton = new QRadioButton(this);
+        independentVEVRadioButton->setObjectName("independentVEVRadioButton");
+        connect(independentVEVRadioButton, &QRadioButton::clicked, this, &UARTConfigForm::gererSelection);
+        QRadioButton *simultaneousRadioButton = new QRadioButton(this);
         simultaneousRadioButton->setObjectName("simultaneousRadioButton");
+        connect(simultaneousRadioButton, &QRadioButton::clicked, this, &UARTConfigForm::gererSelection);
         QPushButton *confirmButton = new QPushButton("Confirmer", this);
         connect(confirmButton, &QPushButton::clicked, this, &UARTConfigForm::confirmSelection);
 
+        // Création du tableau de 3 lignes et 3 colonnes
+        QTableWidget *tableWidget = new QTableWidget(3, 3, this);
+        tableWidget->setItem(1, 0, new QTableWidgetItem("Pilotage indépendant"));
+        tableWidget->setItem(2, 0, new QTableWidgetItem("Pilotage simultané"));
+        tableWidget->setItem(0, 1, new QTableWidgetItem("VEU"));
+        tableWidget->setItem(0, 2, new QTableWidgetItem("VEV"));
+        tableWidget->setSpan(2, 1, 2, 2); //Fusionner les cellules
+        tableWidget->setCellWidget(1, 1, independentVEURadioButton);
+        tableWidget->setCellWidget(1, 2, independentVEVRadioButton);
+        tableWidget->setCellWidget(2, 1, simultaneousRadioButton);
+
+
+
         QVBoxLayout *configBancLayout = new QVBoxLayout;
-        configBancLayout->addWidget(independentRadioButton);
-        configBancLayout->addWidget(simultaneousRadioButton);
+        configBancLayout->addWidget(tableWidget); // Ajout du tableau au layout
         configBancLayout->addWidget(confirmButton);
         configBancTab->setLayout(configBancLayout);
 
@@ -243,29 +262,68 @@ private slots:
     }
 
     void confirmSelection() {
-        qDebug() << "confirmSelection called"; // Message de débogage
 
-        QRadioButton *independentRadioButton = configBancTab->findChild<QRadioButton *>("independentRadioButton");
+        QRadioButton *independentVEURadioButton = configBancTab->findChild<QRadioButton *>("independentVEURadioButton");
+        QRadioButton *independentVEVRadioButton = configBancTab->findChild<QRadioButton *>("independentVEVRadioButton");
         QRadioButton *simultaneousRadioButton = configBancTab->findChild<QRadioButton *>("simultaneousRadioButton");
 
-        if (independentRadioButton && independentRadioButton->isChecked()) {
-            qDebug() << "Independent mode selected"; // Message de débogage
-            int indexSimultaneTab = tabWidget->indexOf(simultaneTab);
-            int indexActionneur1Tab = tabWidget->indexOf(actionneur1Tab);
-            int indexActionneur2Tab = tabWidget->indexOf(actionneur2Tab);
-            if (indexSimultaneTab != -1) tabWidget->setTabEnabled(indexSimultaneTab, false);
-            if (indexActionneur1Tab != -1) tabWidget->setTabEnabled(indexActionneur1Tab, true);
-            if (indexActionneur2Tab != -1) tabWidget->setTabEnabled(indexActionneur2Tab, true);
-        } else if (simultaneousRadioButton && simultaneousRadioButton->isChecked()) {
-            qDebug() << "Simultaneous mode selected"; // Message de débogage
+        if (independentVEURadioButton && independentVEURadioButton->isChecked())
+        {
+            if(independentVEVRadioButton && independentVEVRadioButton->isChecked())
+            {
+                int indexSimultaneTab = tabWidget->indexOf(simultaneTab);
+                int indexActionneur1Tab = tabWidget->indexOf(actionneur1Tab);
+                int indexActionneur2Tab = tabWidget->indexOf(actionneur2Tab);
+                if (indexSimultaneTab != -1) tabWidget->setTabEnabled(indexSimultaneTab, false);
+                if (indexActionneur1Tab != -1) tabWidget->setTabEnabled(indexActionneur1Tab, true);
+                if (indexActionneur2Tab != -1) tabWidget->setTabEnabled(indexActionneur2Tab, true);
+                qDebug() << "Actionneur 1 et 2 en marche";
+            }
+            else
+            {
+                int indexSimultaneTab = tabWidget->indexOf(simultaneTab);
+                int indexActionneur1Tab = tabWidget->indexOf(actionneur1Tab);
+                int indexActionneur2Tab = tabWidget->indexOf(actionneur2Tab);
+                if (indexSimultaneTab != -1) tabWidget->setTabEnabled(indexSimultaneTab, false);
+                if (indexActionneur1Tab != -1) tabWidget->setTabEnabled(indexActionneur1Tab, true);
+                if (indexActionneur2Tab != -1) tabWidget->setTabEnabled(indexActionneur2Tab, false);
+                qDebug() << "Actionneur 1 en marche";
+
+            }
+        }
+        else if(independentVEVRadioButton && independentVEVRadioButton->isChecked())
+        {
+            if(independentVEURadioButton && independentVEURadioButton->isChecked())
+            {
+                int indexSimultaneTab = tabWidget->indexOf(simultaneTab);
+                int indexActionneur1Tab = tabWidget->indexOf(actionneur1Tab);
+                int indexActionneur2Tab = tabWidget->indexOf(actionneur2Tab);
+                if (indexSimultaneTab != -1) tabWidget->setTabEnabled(indexSimultaneTab, false);
+                if (indexActionneur1Tab != -1) tabWidget->setTabEnabled(indexActionneur1Tab, true);
+                if (indexActionneur2Tab != -1) tabWidget->setTabEnabled(indexActionneur2Tab, true);
+                qDebug() << "Actionneur 1 et 2 en marche";
+            }
+            else
+            {
+                int indexSimultaneTab = tabWidget->indexOf(simultaneTab);
+                int indexActionneur1Tab = tabWidget->indexOf(actionneur1Tab);
+                int indexActionneur2Tab = tabWidget->indexOf(actionneur2Tab);
+                if (indexSimultaneTab != -1) tabWidget->setTabEnabled(indexSimultaneTab, false);
+                if (indexActionneur1Tab != -1) tabWidget->setTabEnabled(indexActionneur1Tab, false);
+                if (indexActionneur2Tab != -1) tabWidget->setTabEnabled(indexActionneur2Tab, true);
+                qDebug() << "Actionneur 2 en marche";
+
+            }
+        }
+        else if (simultaneousRadioButton && simultaneousRadioButton->isChecked())
+        {
             int indexSimultaneTab = tabWidget->indexOf(simultaneTab);
             int indexActionneur1Tab = tabWidget->indexOf(actionneur1Tab);
             int indexActionneur2Tab = tabWidget->indexOf(actionneur2Tab);
             if (indexSimultaneTab != -1) tabWidget->setTabEnabled(indexSimultaneTab, true);
             if (indexActionneur1Tab != -1) tabWidget->setTabEnabled(indexActionneur1Tab, false);
             if (indexActionneur2Tab != -1) tabWidget->setTabEnabled(indexActionneur2Tab, false);
-        } else {
-            qDebug() << "No valid mode selected"; // Message de débogage
+            qDebug() << "Que simultané en marche";
         }
     }
 
@@ -299,6 +357,15 @@ private:
             actionneur2Tab->setStyleSheet("background-color: #4D4D4D;");
             simultaneTab->setStyleSheet("background-color: #4D4D4D;");
             terminalTab->setStyleSheet("background-color: #4D4D4D;");
+        }
+    }
+
+    // Méthode pour gérer la sélection
+    void gererSelection() {
+        QRadioButton *bouton = qobject_cast<QRadioButton*>(sender());
+        if (bouton) {
+            // Inverser l'état de sélection du bouton
+            bouton->setChecked(!bouton->isChecked());
         }
     }
 
